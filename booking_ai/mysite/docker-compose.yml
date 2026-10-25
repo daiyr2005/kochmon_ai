@@ -1,0 +1,48 @@
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: mysite/Dockerfile
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers
+    volumes:
+      - ..:/app
+      # AWS EC2: set SQLITE_DATA_DIR to the mounted EBS directory, e.g. /mnt/kochmon-data.
+      # Local default keeps the SQLite file under booking_ai/data/sqlite.
+      - ${SQLITE_DATA_DIR:-../data/sqlite}:/data
+    ports:
+      - "127.0.0.1:8000:8000"
+    container_name: web
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: sqlite+aiosqlite:////data/booking_ai.db
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  nginx:
+    image: linuxserver/swag
+    restart: always
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Bishkek
+      - URL=baaluukitep.com.kg
+      - SUBDOMAINS=api
+      - VALIDATION=http
+      - ONLY_SUBDOMAINS=true
+      - STAGING=false
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - lets:/config
+      - ./nginx/ssl.conf:/config/nginx/site-confs/ssl/ssl.conf
+      - ./nginx/nginx.conf:/config/nginx/site-confs/default.conf
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
+
+volumes:
+  lets:
