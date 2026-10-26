@@ -71,8 +71,7 @@ def test_google_callback_creates_user_and_returns_existing_jwt(client, monkeypat
         'email': 'person@example.com', 'email_verified': True, 'name': 'Person'}))
     state = begin(c)
     response = c.get(f'/api/auth/google/callback?state={state}&code=mock', follow_redirects=False)
-    assert 'access_token=' in response.headers['location']
-    assert 'token_type=bearer' in response.headers['location']
+    assert 'token=' in response.headers['location']
 
 
 def test_google_callback_reuses_same_email_user(client, monkeypatch):
@@ -86,7 +85,7 @@ def test_google_callback_reuses_same_email_user(client, monkeypatch):
         'email': 'PERSON@example.com', 'email_verified': True, 'name': 'Google Name'}))
     state = begin(c)
     response = c.get(f'/api/auth/google/callback?state={state}&code=mock', follow_redirects=False)
-    assert 'access_token=' in response.headers['location']
+    assert 'token=' in response.headers['location']
     async def count():
         async with maker() as db:
             from sqlalchemy import func, select
@@ -172,3 +171,19 @@ def test_google_token_signature_and_claim_validation(monkeypatch, claims, raises
     else:
         result = asyncio.run(google_oauth.exchange_and_verify('mock-code'))
         assert result['email'] == 'ok@example.com'
+import httpx
+import pytest
+from main import app as backend_app
+
+
+@pytest.mark.asyncio
+async def test_configured_frontend_origin_passes_cors_preflight():
+    transport = httpx.ASGITransport(app=backend_app)
+    async with httpx.AsyncClient(transport=transport, base_url='http://testserver') as client:
+        response = await client.options('/api/auth/login', headers={
+            'Origin': 'http://localhost:3000',
+            'Access-Control-Request-Method': 'POST',
+            'Access-Control-Request-Headers': 'authorization,content-type',
+        })
+    assert response.status_code == 200
+    assert response.headers['access-control-allow-origin'] == 'http://localhost:3000'

@@ -47,6 +47,8 @@ async def google_callback(request: Request, state: str | None = None, code: str 
         raise ServiceError(503, "Google OAuth frontend redirect is not configured")
     response = RedirectResponse(frontend, status_code=303)
     response.delete_cookie("google_oauth_state", path="/api/auth/google/callback")
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Cache-Control"] = "no-store"
     cookie_state = request.cookies.get("google_oauth_state")
     if not state or not cookie_state or not secrets.compare_digest(state, cookie_state):
         response.headers["location"] = frontend + "?" + urlencode({"error": "invalid_state"})
@@ -76,8 +78,7 @@ async def google_callback(request: Request, state: str | None = None, code: str 
     if not user.is_active:
         response.headers["location"] = frontend + "?" + urlencode({"error": "account_disabled"})
     else:
-        response.headers["location"] = frontend + "#" + urlencode({
-            "access_token": create_access_token(user.id), "token_type": "bearer"})
+        response.headers["location"] = frontend + "?" + urlencode({"token": create_access_token(user.id)})
     return response
 
 

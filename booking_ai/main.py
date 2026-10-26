@@ -2,13 +2,23 @@ from __future__ import annotations
 
 import uvicorn
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from lifespan import lifespan
 from mysite.api.router import api_router
+from mysite.config import get_settings
 from mysite.services.errors import ServiceError
 
 app = FastAPI(title="Kochmon AI", lifespan=lifespan)
+cors_origins = [origin.strip() for origin in get_settings().cors_allow_origins.split(",") if origin.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 
 @app.exception_handler(ServiceError)
