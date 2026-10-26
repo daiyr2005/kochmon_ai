@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
     app_name: str = "Booking AI"
     app_env: str = "development"
+    domain: str | None = None
     # SQLite используется по умолчанию; DATABASE_URL можно задать для другого окружения.
     database_url: str = "sqlite+aiosqlite:///./booking_ai.db"
 
@@ -23,6 +24,11 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
     bcrypt_rounds: int = 12
+
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    google_redirect_uri: str | None = None
+    google_frontend_redirect_url: str | None = None
 
     blocked_words_path: Path = BASE_DIR / "data" / "blocked_words.txt"
 

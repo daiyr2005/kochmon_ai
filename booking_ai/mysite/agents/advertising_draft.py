@@ -20,7 +20,7 @@ _PROMPT = ChatPromptTemplate.from_messages(
             "system",
             "Extract only advertising campaign fields explicitly stated in the user's text. "
             "Call fill_advertising_campaign_fields exactly once. Never invent a price, currency, "
-            "image URL, destination URL, placement, or campaign dates. Use null for information "
+            "image URL, video URL, destination URL, placement, or campaign dates. Use null for information "
             "that is missing or ambiguous. For the placement use one of: home, internet_search, "
             "listings, category, listing. Dates must include an explicit timezone; if no timezone "
             "is supplied, leave the date null. Do not create, publish, approve, or claim payment."

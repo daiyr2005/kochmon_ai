@@ -221,6 +221,7 @@ class AdvertisingCampaign(AIBase):
     title: Mapped[str] = mapped_column(String(120))
     body: Mapped[str] = mapped_column(String(1000))
     image_url: Mapped[str] = mapped_column(String(2048))
+    video_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     destination_url: Mapped[str] = mapped_column(String(2048))
     placement: Mapped[str] = mapped_column(String(32), index=True)
     budget: Mapped[Decimal] = mapped_column(Numeric(12, 2))

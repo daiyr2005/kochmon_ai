@@ -13,6 +13,7 @@ class CampaignCreate(BaseModel):
     title: str = Field(min_length=3, max_length=120)
     body: str = Field(min_length=1, max_length=1000)
     image_url: HttpUrl
+    video_url: HttpUrl | None = None
     destination_url: HttpUrl
     placement: Placement
     budget: Decimal = Field(gt=0, max_digits=12, decimal_places=2)
@@ -37,6 +38,7 @@ class CampaignDraftFields(BaseModel):
     title: str | None = Field(default=None, max_length=120)
     body: str | None = Field(default=None, max_length=1000)
     image_url: HttpUrl | None = None
+    video_url: HttpUrl | None = None
     destination_url: HttpUrl | None = None
     placement: Placement | None = None
     budget: Decimal | None = Field(default=None, gt=0, max_digits=12, decimal_places=2)
@@ -50,6 +52,7 @@ class CampaignUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=3, max_length=120)
     body: str | None = Field(default=None, min_length=1, max_length=1000)
     image_url: HttpUrl | None = None
+    video_url: HttpUrl | None = None
     destination_url: HttpUrl | None = None
     placement: Placement | None = None
     budget: Decimal | None = Field(default=None, gt=0, max_digits=12, decimal_places=2)
@@ -70,6 +73,7 @@ class CampaignOut(BaseModel):
     title: str
     body: str
     image_url: str
+    video_url: str | None = None
     destination_url: str
     placement: str
     budget: Decimal
@@ -88,6 +92,7 @@ class SponsoredCampaignOut(BaseModel):
     title: str
     body: str
     image_url: str
+    video_url: str | None = None
     destination_url: str
     placement: str
     label: Literal["\u0420\u0435\u043a\u043b\u0430\u043c\u0430"] = "\u0420\u0435\u043a\u043b\u0430\u043c\u0430"

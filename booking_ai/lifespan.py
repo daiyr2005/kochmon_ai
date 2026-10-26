@@ -3,6 +3,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from sqlalchemy import inspect, text
 
 from mysite.config import get_settings
 from mysite.database.ai_models import AIBase
@@ -44,6 +45,11 @@ async def lifespan(app: FastAPI):
         # 1. Подготовка базы данных
         async with get_engine().begin() as connection:
             await connection.run_sync(AIBase.metadata.create_all)
+            columns = await connection.run_sync(
+                lambda sync_connection: {column["name"] for column in inspect(sync_connection).get_columns("advertising_campaigns")}
+            )
+            if "video_url" not in columns:
+                await connection.execute(text("ALTER TABLE advertising_campaigns ADD COLUMN video_url VARCHAR(2048)"))
 
         await seed_all()
         logger.info("База данных готова.")

@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone
 import logging
+from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mysite.api.dependencies import get_current_user, require_admin
 from mysite.agents.advertising_draft import AdvertisingDraftError, generate_advertising_draft
-from mysite.config import get_settings
+from mysite.config import BASE_DIR, get_settings
 from mysite.database.ai_models import AdvertisingCampaign, User
 from mysite.database.session import get_session
 from mysite.schemas.advertising import (
@@ -25,6 +27,35 @@ from mysite.schemas.advertising import (
 
 router = APIRouter(prefix="/advertising", tags=["advertising"])
 log = logging.getLogger("booking_ai.advertising")
+
+MAX_AD_VIDEO_BYTES = 18 * 1024 * 1024
+VIDEO_TYPES = {"video/mp4": ".mp4", "video/webm": ".webm"}
+
+
+@router.post("/videos", status_code=201)
+async def upload_ad_video(request: Request, file: UploadFile = File(...), user: User = Depends(get_current_user)):
+    media_type = (file.content_type or "").split(";", 1)[0].strip().lower()
+    extension = VIDEO_TYPES.get(media_type)
+    if extension is None:
+        raise HTTPException(status_code=415, detail="Use an MP4 or WebM video")
+    content = await file.read(MAX_AD_VIDEO_BYTES + 1)
+    await file.close()
+    if not content:
+        raise HTTPException(status_code=400, detail="Video file is empty")
+    if len(content) > MAX_AD_VIDEO_BYTES:
+        raise HTTPException(status_code=413, detail="Video must be 18 MiB or smaller")
+    filename = f"{uuid4().hex}{extension}"
+    directory = BASE_DIR / "media" / "ads"
+    directory.mkdir(parents=True, exist_ok=True)
+    await asyncio.to_thread((directory / filename).write_bytes, content)
+    settings = get_settings()
+    if settings.app_env.lower() == "production" and settings.domain:
+        origin = f"https://{settings.domain.strip().strip('/')}"
+    else:
+        origin = str(request.base_url).rstrip("/")
+    video_url = f"{origin}/media/ads/{filename}"
+    return {"video_url": video_url, "content_type": media_type,
+            "size_bytes": len(content)}
 
 
 def _utcnow() -> datetime:
@@ -59,8 +90,9 @@ async def _owned_campaign(db: AsyncSession, campaign_id: int, owner_id: int) -> 
 async def create_campaign(data: CampaignCreate, user: User = Depends(get_current_user),
                           db: AsyncSession = Depends(get_session)):
     campaign = AdvertisingCampaign(
-        **data.model_dump(exclude={"image_url", "destination_url"}),
+        **data.model_dump(exclude={"image_url", "video_url", "destination_url"}),
         image_url=str(data.image_url),
+        video_url=str(data.video_url) if data.video_url else None,
         destination_url=str(data.destination_url),
         owner_id=user.id,
         status="draft",
@@ -87,6 +119,8 @@ async def update_campaign(campaign_id: int, data: CampaignUpdate, user: User = D
     changes = data.model_dump(exclude_unset=True)
     if "image_url" in changes and changes["image_url"] is not None:
         changes["image_url"] = str(changes["image_url"])
+    if "video_url" in changes and changes["video_url"] is not None:
+        changes["video_url"] = str(changes["video_url"])
     if "destination_url" in changes and changes["destination_url"] is not None:
         changes["destination_url"] = str(changes["destination_url"])
     for name, value in changes.items():
@@ -174,6 +208,6 @@ async def get_placement(placement: Placement, limit: int = Query(default=5, ge=1
     ).order_by(AdvertisingCampaign.created_at.desc()).limit(limit))
     return [SponsoredCampaignOut.model_validate({
         "id": item.id, "title": item.title, "body": item.body,
-        "image_url": item.image_url, "destination_url": item.destination_url,
+        "image_url": item.image_url, "video_url": item.video_url, "destination_url": item.destination_url,
         "placement": item.placement,
     }) for item in result.all()]
