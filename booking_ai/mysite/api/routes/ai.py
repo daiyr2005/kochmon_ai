@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mysite.api.dependencies import get_ai_runtime, get_current_user_optional
@@ -23,3 +23,14 @@ async def chat(body: ChatIn, user: User | None = Depends(get_current_user_option
         return await runtime.handle(session, user, "api", body.conversation_id, body.message)
     except OllamaUnavailable:
         raise ServiceError(503, "Языковая модель (Ollama) недоступна, попробуйте позже")
+
+
+@router.delete("/chat", status_code=204, response_class=Response)
+async def delete_chat(
+    conversation_id: str = Query(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_.:-]+$"),
+    user: User | None = Depends(get_current_user_optional),
+    runtime: AIRuntime = Depends(get_ai_runtime),
+):
+    """Delete this user's conversation state and any pending confirmation."""
+    await runtime.delete_conversation(user, "api", conversation_id)
+    return Response(status_code=204)

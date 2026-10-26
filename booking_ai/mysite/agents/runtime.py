@@ -212,6 +212,12 @@ class AIRuntime:
             return item[1]
         return None
 
+    async def delete_conversation(self, user: User | None, channel: str, conversation_id: str) -> None:
+        key = f"{channel}:{user.id if user else 'anon'}:{conversation_id}"
+        async with self._locks.setdefault(key, asyncio.Lock()):
+            self._pending.pop(key, None)
+            await self.checkpointer.adelete_thread(key)
+
     async def handle(self, session: AsyncSession, user: User | None, channel: str, conversation_id: str | None,
                      text: str) -> ChatOut:
         conv = conversation_id or uuid.uuid4().hex
