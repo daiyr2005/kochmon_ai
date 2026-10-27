@@ -5,7 +5,7 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Sequence
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mysite.database.ai_models import Category, City, Country, Listing, ListingEventKind, ListingStatus, User
@@ -147,13 +147,15 @@ async def update_listing(session: AsyncSession, listing: Listing, changes: dict,
 async def publish_listing(session: AsyncSession, listing: Listing, moderation: ModerationService | None) -> Listing:
     if listing.status == ListingStatus.EXTERNAL:
         raise ServiceError(409, "Внешние объявления публиковать нельзя")
-    if listing.status == ListingStatus.ACTIVE:
+    if listing.status in (ListingStatus.ACTIVE, ListingStatus.PENDING):
         return listing
     errors = _full_check(listing_to_dict(listing), moderation, today=date.today())
     if errors:
         raise ServiceError(422, "Объявление не прошло проверку", errors)
-    listing.status = ListingStatus.ACTIVE
-    listing.published_at = listing.published_at or datetime.now(timezone.utc)
+    listing.status = ListingStatus.PENDING
+    listing.moderation_reason = None
+    from mysite.services.user_notifications import notify_user
+    await notify_user(session, listing.owner_id, f"listing:{listing.id}:submitted", "Объявление отправлено на модерацию", listing.title, listing.id)
     await session.commit()
     return listing
 
@@ -193,7 +195,8 @@ async def query_listings(
     city_ids: Sequence[int] | None = None, price_min: Decimal | None = None, price_max: Decimal | None = None,
     currency: str | None = None, price_period: str | None = None, rooms: int | None = None,
     guests: int | None = None, area_min: Decimal | None = None, area_max: Decimal | None = None,
-    property_type: str | None = None, limit: int = 20, offset: int = 0,
+    property_type: str | None = None, search_text: str | None = None, city_name: str | None = None,
+    country_name: str | None = None, limit: int = 20, offset: int = 0,
 ) -> list[Listing]:
     q = select(Listing)
     if owner_id is not None:
@@ -224,6 +227,16 @@ async def query_listings(
         q = q.where(Listing.area <= area_max)
     if property_type:
         q = q.where(func.lower(Listing.property_type) == func.lower(property_type))
+    if search_text and search_text.strip():
+        needle = search_text.strip().casefold()
+        q = q.where(or_(func.lower(Listing.title).contains(needle, autoescape=True),
+                        func.lower(Listing.description).contains(needle, autoescape=True)))
+    if city_name:
+        q = q.join(City, Listing.city_id == City.id).where(
+            func.lower(City.name).contains(city_name.casefold(), autoescape=True))
+    if country_name:
+        q = q.join(Country, Listing.country_id == Country.id).where(
+            func.lower(Country.name).contains(country_name.casefold(), autoescape=True))
     q = q.order_by(Listing.created_at.desc(), Listing.id.desc()).limit(limit).offset(offset)
     return list((await session.execute(q)).scalars().all())
 

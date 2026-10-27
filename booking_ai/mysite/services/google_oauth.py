@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import secrets
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 import httpx
 import jwt
@@ -66,6 +66,34 @@ async def exchange_and_verify(code: str) -> dict:
         raise
     except (httpx.HTTPError, ValueError, KeyError, StopIteration, jwt.PyJWTError) as exc:
         raise GoogleOAuthError("Google authorization failed") from exc
+
+
+def _normalize_frontend_origin(url: str | None) -> str | None:
+    if not url:
+        return None
+    parsed = urlsplit(url)
+    if not parsed.scheme or not parsed.netloc:
+        return url.rstrip("/") or None
+    if parsed.path.rstrip("/") in {"", "/", "/auth", "/auth/callback"}:
+        return f"{parsed.scheme}://{parsed.netloc}"
+    return url.rstrip("/")
+
+
+def resolve_frontend_redirect_url(request_headers: dict | None = None, configured: str | None = None) -> str:
+    if configured:
+        normalized = _normalize_frontend_origin(configured)
+        if normalized:
+            return normalized
+
+    if request_headers is None:
+        request_headers = {}
+    origin = request_headers.get("origin") or request_headers.get("referer")
+    if origin:
+        parsed = urlsplit(origin)
+        if parsed.scheme and parsed.netloc:
+            return f"{parsed.scheme}://{parsed.netloc}"
+
+    return "http://localhost:5173"
 
 
 def new_state() -> str:

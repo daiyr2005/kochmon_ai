@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from sqladmin import Admin
 
-from mysite.db.db import engine
+from mysite.database.session import get_engine
 
 from .views import (
     UserAdmin,
@@ -15,11 +15,12 @@ from .views import (
     ChannelAccountAdmin,
     ProcessedMessageAdmin,
     ChannelLinkCodeAdmin,
+    PaymentSettingsAdmin,
 )
 
 
 def setup_admin(user_app: FastAPI) -> None:
-    admin = Admin(user_app, engine)
+    admin = Admin(user_app, get_engine())
 
     admin.add_view(UserAdmin)
     admin.add_view(CountryAdmin)
@@ -32,3 +33,4 @@ def setup_admin(user_app: FastAPI) -> None:
     admin.add_view(ChannelAccountAdmin)
     admin.add_view(ProcessedMessageAdmin)
     admin.add_view(ChannelLinkCodeAdmin)
+    admin.add_view(PaymentSettingsAdmin)

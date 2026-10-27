@@ -1,6 +1,40 @@
+from sqlalchemy import select
 from sqladmin import ModelView
 
+from mysite.config import get_settings
 from mysite.database.ai_models import *
+from mysite.database.session import get_sessionmaker
+from mysite.integrations.payment_providers import build_provider
+
+
+class PaymentSettingsAdmin(ModelView, model=PaymentSettings):
+    name = "Настройки оплаты"
+    name_plural = "Настройки оплаты"
+    column_list = [
+        PaymentSettings.id,
+        PaymentSettings.provider,
+        PaymentSettings.checkout_url,
+        PaymentSettings.is_active,
+        PaymentSettings.updated_at,
+    ]
+    column_searchable_list = [PaymentSettings.provider, PaymentSettings.checkout_url]
+    column_formatters = {
+        PaymentSettings.webhook_secret: lambda model, value: "********" if value else "",
+    }
+    can_delete = False
+
+    async def after_model_change(self, data: dict, model: PaymentSettings, is_created: bool, request):
+        settings = get_settings()
+        runtime_settings = settings.model_copy(
+            update={
+                "payment_provider": model.provider or settings.payment_provider,
+                "payment_webhook_secret": model.webhook_secret or settings.payment_webhook_secret,
+                "payment_checkout_url": model.checkout_url or settings.payment_checkout_url,
+            }
+        )
+        request.app.state.payment_provider = build_provider(runtime_settings)
+        return None
+
 
 class UserAdmin(ModelView, model=User):
     name = "Пользователь"

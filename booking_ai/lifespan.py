@@ -3,10 +3,10 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, select, text
 
 from mysite.config import get_settings
-from mysite.database.ai_models import AIBase
+from mysite.database.ai_models import AIBase, PaymentSettings
 from mysite.database.session import get_engine, get_sessionmaker, close_database
 from mysite.database.seed import seed_all
 from mysite.integrations.telegram import TelegramClient
@@ -45,13 +45,36 @@ async def lifespan(app: FastAPI):
         # 1. Подготовка базы данных
         async with get_engine().begin() as connection:
             await connection.run_sync(AIBase.metadata.create_all)
-            columns = await connection.run_sync(
-                lambda sync_connection: {column["name"] for column in inspect(sync_connection).get_columns("advertising_campaigns")}
+            columns_by_table = await connection.run_sync(
+                lambda c: {name: {col["name"] for col in inspect(c).get_columns(name)}
+                           for name in ("advertising_campaigns", "users", "listings") if inspect(c).has_table(name)}
             )
-            if "video_url" not in columns:
-                await connection.execute(text("ALTER TABLE advertising_campaigns ADD COLUMN video_url VARCHAR(2048)"))
+            additions = {
+                "advertising_campaigns": {"video_url": "VARCHAR(2048)"},
+                "users": {"balance": "NUMERIC(14, 2) NOT NULL DEFAULT 0"},
+                "listings": {"photo_urls": "JSON NOT NULL DEFAULT '[]'", "moderation_reason": "TEXT",
+                             "promotion_ends_at": "DATETIME"},
+            }
+            for table, columns in additions.items():
+                for column, declaration in columns.items():
+                    if table in columns_by_table and column not in columns_by_table[table]:
+                        await connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {declaration}"))
 
         await seed_all()
+
+        async with get_sessionmaker()() as session:
+            existing = await session.scalar(select(PaymentSettings.id).limit(1))
+            if existing is None:
+                session.add(
+                    PaymentSettings(
+                        provider=settings.payment_provider,
+                        webhook_secret=settings.payment_webhook_secret,
+                        checkout_url=settings.payment_checkout_url,
+                        is_active=True,
+                    )
+                )
+                await session.commit()
+
         logger.info("База данных готова.")
 
         # 2. Загрузка запрещённых слов

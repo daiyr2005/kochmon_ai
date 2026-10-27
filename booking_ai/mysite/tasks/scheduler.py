@@ -9,6 +9,7 @@ from mysite.config import get_settings
 from mysite.database.session import get_sessionmaker
 from mysite.tasks.notifier import Sender, run_cycle, run_events_cycle
 from mysite.tasks.plan_notices import run_plan_cycle
+from mysite.tasks.promotion_notices import run_promotion_notice_cycle
 
 log = logging.getLogger("booking_ai.scheduler")
 
@@ -36,6 +37,12 @@ async def run_once(maker, senders: dict[str, Sender], provider, days_before: int
             raise
         except Exception:
             log.exception("Ошибка в шаге «%s», повторим в следующий раз", name)
+    try:
+        stats.update(await run_promotion_notice_cycle(maker))
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        log.exception("Promotion expiry notice cycle failed")
     return stats
 
 

@@ -43,6 +43,7 @@ class User(AIBase):
     email: Mapped[str | None] = mapped_column(String(255), unique=True)
     password_hash: Mapped[str | None] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(32), default="user")
+    balance: Mapped[Decimal] = mapped_column(Numeric(14, 2), default=Decimal("0"))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
@@ -115,6 +116,9 @@ class Listing(AIBase):
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # дата публикации в источнике
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # когда проверяли мы
     status: Mapped[str] = mapped_column(String(16), default=ListingStatus.DRAFT, index=True)
+    photo_urls: Mapped[list] = mapped_column(JSON, default=list)
+    moderation_reason: Mapped[str | None] = mapped_column(Text)
+    promotion_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
     owner: Mapped[User | None] = relationship(back_populates="listings")
@@ -263,6 +267,85 @@ class Payment(AIBase):
     status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class PromotionTariff(AIBase):
+    __tablename__ = "promotion_tariffs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(32), unique=True)
+    name: Mapped[str] = mapped_column(String(64))
+    price: Mapped[Decimal] = mapped_column(Numeric(14, 2))
+    currency: Mapped[str] = mapped_column(String(3), default="KGS")
+    duration_days: Mapped[int] = mapped_column(Integer)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class PromotionPayment(AIBase):
+    __tablename__ = "promotion_payments"
+    __table_args__ = (CheckConstraint("amount > 0", name="ck_promotion_payment_positive"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), index=True)
+    listing_id: Mapped[int] = mapped_column(ForeignKey("listings.id", ondelete="RESTRICT"), index=True)
+    tariff_id: Mapped[int] = mapped_column(ForeignKey("promotion_tariffs.id", ondelete="RESTRICT"))
+    amount: Mapped[Decimal] = mapped_column(Numeric(14, 2))
+    currency: Mapped[str] = mapped_column(String(3))
+    provider: Mapped[str] = mapped_column(String(32))
+    provider_payment_id: Mapped[str | None] = mapped_column(String(255), unique=True)
+    checkout_url: Mapped[str | None] = mapped_column(String(2048))
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class PaymentEvent(AIBase):
+    __tablename__ = "payment_events"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[str] = mapped_column(String(255), unique=True)
+    payment_id: Mapped[int] = mapped_column(ForeignKey("promotion_payments.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(16))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class PromotionActivation(AIBase):
+    __tablename__ = "promotion_activations"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    payment_id: Mapped[int] = mapped_column(ForeignKey("promotion_payments.id", ondelete="CASCADE"), unique=True)
+    listing_id: Mapped[int] = mapped_column(ForeignKey("listings.id", ondelete="RESTRICT"), index=True)
+    activated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class UserNotification(AIBase):
+    __tablename__ = "user_notifications"
+    __table_args__ = (UniqueConstraint("event_key", name="uq_user_notification_event"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_key: Mapped[str] = mapped_column(String(255))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    listing_id: Mapped[int | None] = mapped_column(ForeignKey("listings.id", ondelete="SET NULL"))
+    title: Mapped[str] = mapped_column(String(160))
+    body: Mapped[str] = mapped_column(Text)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class BalanceOperation(AIBase):
+    __tablename__ = "balance_operations"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), index=True)
+    admin_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
+    amount: Mapped[Decimal] = mapped_column(Numeric(14, 2))
+    reason: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class PaymentSettings(AIBase):
+    __tablename__ = "payment_settings"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    provider: Mapped[str] = mapped_column(String(32), default="dev")
+    webhook_secret: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    checkout_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
 
 
 class UserPlan(AIBase):

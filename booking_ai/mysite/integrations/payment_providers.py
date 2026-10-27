@@ -17,6 +17,7 @@ class PaymentEvent:
     provider_payment_id: str | None
     amount: Decimal | None
     currency: str | None
+    event_id: str | None = None
 
 
 class DevProvider:
@@ -64,7 +65,7 @@ class GenericProvider:
             data = json.loads(body)
             amount = Decimal(str(data["amount"])) if data.get("amount") is not None else None
             return PaymentEvent(int(data["payment_id"]), str(data["status"]), data.get("provider_payment_id"),
-                                amount, data.get("currency"))
+                                amount, data.get("currency"), str(data.get("event_id") or ""))
         except (ValueError, KeyError, TypeError, InvalidOperation):
             raise ServiceError(400, "Некорректное тело webhook")
 

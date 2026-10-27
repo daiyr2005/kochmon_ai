@@ -1,0 +1,201 @@
+{
+  "version": "1",
+  "workspaceId": "5653e8673bd5a22e",
+  "workspaceName": "booking_ai_events_renewal_tavily",
+  "enabled": true,
+  "updatedAt": "2026-10-27T09:38:25.867Z",
+  "detectedStack": {
+    "languages": [],
+    "frameworks": [],
+    "uiLibraries": [],
+    "orm": [],
+    "authLibraries": [],
+    "validationLibraries": [],
+    "paymentLibraries": [],
+    "testTools": [],
+    "scripts": {},
+    "importantDirs": [],
+    "sensitiveFiles": [
+      "booking_ai/.env",
+      "booking_ai/mysite/admin/setup.py",
+      "booking_ai/mysite/admin/views.py",
+      "booking_ai/mysite/admin/__init__.py",
+      "booking_ai/mysite/api/routes/auth.py",
+      "booking_ai/mysite/api/routes/payments.py",
+      "booking_ai/mysite/database/session.py",
+      "booking_ai/mysite/schemas/auth.py",
+      "booking_ai/mysite/schemas/billing.py",
+      "booking_ai/mysite/services/billing.py"
+    ]
+  },
+  "sections": {
+    "stack": [],
+    "packageManager": [],
+    "architectureRules": [],
+    "codingConventions": [],
+    "sensitiveFiles": [
+      {
+        "id": "d6000c62770d233b",
+        "text": "Environment file: booking_ai/.env",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/.env"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      },
+      {
+        "id": "ff2678c23c58289f",
+        "text": "Admin area: booking_ai/mysite/admin/setup.py",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/admin/setup.py"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      },
+      {
+        "id": "dd96a61e718cfd8c",
+        "text": "Admin area: booking_ai/mysite/admin/views.py",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/admin/views.py"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      },
+      {
+        "id": "0e182996ca2ff6c1",
+        "text": "Admin area: booking_ai/mysite/admin/__init__.py",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/admin/__init__.py"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      },
+      {
+        "id": "946169dea33c553a",
+        "text": "Auth code: booking_ai/mysite/api/routes/auth.py",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/api/routes/auth.py"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      },
+      {
+        "id": "f2ce5178ca9d8aa7",
+        "text": "Payments flow: booking_ai/mysite/api/routes/payments.py",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/api/routes/payments.py"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      },
+      {
+        "id": "ac46234e15a1faaf",
+        "text": "Session handling: booking_ai/mysite/database/session.py",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/database/session.py"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      },
+      {
+        "id": "81665240db4b3a29",
+        "text": "Auth code: booking_ai/mysite/schemas/auth.py",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/schemas/auth.py"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      },
+      {
+        "id": "4a4369c67401facf",
+        "text": "Billing flow: booking_ai/mysite/schemas/billing.py",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/schemas/billing.py"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      },
+      {
+        "id": "42e6526d304becfd",
+        "text": "Billing flow: booking_ai/mysite/services/billing.py",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/services/billing.py"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      },
+      {
+        "id": "98a26d99de9f3a6a",
+        "text": "Admin area: booking_ai/mysite/api/routes/admin.py",
+        "kind": "risk",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/api/routes/admin.py"
+        },
+        "lastVerifiedAt": "2026-10-27T04:13:35.124Z"
+      }
+    ],
+    "forbiddenActions": [
+      {
+        "id": "c11c6fc5c28fd4e6",
+        "text": "Never log or commit values for env names: TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET, DEV_JWT_SECRET, JWT_SECRET, PAYMENT_WEBHOOK_SECRET, GOOGLE_TOKEN.",
+        "kind": "constraint",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      }
+    ],
+    "allowedCommands": [],
+    "businessRules": [],
+    "integrationRules": [
+      {
+        "id": "028fcdf1303971b6",
+        "text": "Project ships with Docker. Verify Docker build before considering deploy ready.",
+        "kind": "constraint",
+        "source": "repo_detected",
+        "confidence": "confirmed",
+        "scope": "workspace",
+        "evidence": {
+          "file": "booking_ai/mysite/nginx/Dockerfile"
+        },
+        "lastVerifiedAt": "2026-10-27T09:38:25.867Z"
+      }
+    ],
+    "testingExpectations": [],
+    "agentInstructions": [],
+    "openQuestions": []
+  }
+}

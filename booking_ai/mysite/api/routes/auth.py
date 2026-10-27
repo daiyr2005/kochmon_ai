@@ -4,7 +4,7 @@ import asyncio
 import secrets
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +14,13 @@ from mysite.database.session import get_session
 from mysite.schemas.auth import LoginIn, RegisterIn, TokenOut, UserOut
 from mysite.config import get_settings
 from mysite.services.errors import ServiceError
-from mysite.services.google_oauth import GoogleOAuthError, exchange_and_verify, make_authorization_url, new_state
+from mysite.services.google_oauth import (
+    GoogleOAuthError,
+    exchange_and_verify,
+    make_authorization_url,
+    new_state,
+    resolve_frontend_redirect_url,
+)
 from mysite.services.security import (
     create_access_token,
     dummy_hash,
@@ -42,9 +48,10 @@ async def google_start():
 @router.get("/google/callback")
 async def google_callback(request: Request, state: str | None = None, code: str | None = None,
                          error: str | None = None, db: AsyncSession = Depends(get_session)):
-    frontend = get_settings().google_frontend_redirect_url
-    if not frontend:
-        raise ServiceError(503, "Google OAuth frontend redirect is not configured")
+    frontend = resolve_frontend_redirect_url(
+        {"origin": request.headers.get("origin"), "referer": request.headers.get("referer")},
+        get_settings().google_frontend_redirect_url,
+    )
     response = RedirectResponse(frontend, status_code=303)
     response.delete_cookie("google_oauth_state", path="/api/auth/google/callback")
     response.headers["Referrer-Policy"] = "no-referrer"
@@ -78,8 +85,15 @@ async def google_callback(request: Request, state: str | None = None, code: str 
     if not user.is_active:
         response.headers["location"] = frontend + "?" + urlencode({"error": "account_disabled"})
     else:
-        response.headers["location"] = frontend + "?" + urlencode({"token": create_access_token(user.id)})
+        response.headers["location"] = frontend + "#" + urlencode({"access_token": create_access_token(user.id)})
     return response
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie("google_oauth_state", path="/api/auth/google/callback")
+    response.headers["Cache-Control"] = "no-store"
+    return {"status": "ok"}
 
 
 @router.post("/register", response_model=UserOut, status_code=201)

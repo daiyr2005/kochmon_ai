@@ -93,5 +93,8 @@ class ListingOut(BaseModel):
     published_at: datetime | None
     last_seen_at: datetime | None
     status: str
+    photo_urls: list[str] = Field(default_factory=list)
+    moderation_reason: str | None = None
+    promotion_ends_at: datetime | None = None
     created_at: datetime
     updated_at: datetime

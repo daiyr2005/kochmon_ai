@@ -1,14 +1,39 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mysite.api.dependencies import get_current_user
-from mysite.database.ai_models import EventNotification, ListingEvent, Notification, PlanNotice, User
+from mysite.database.ai_models import EventNotification, ListingEvent, Notification, PlanNotice, User, UserNotification
 from mysite.database.session import get_session
 from mysite.schemas.common import MessageOut
 from mysite.schemas.subscription import EventNotificationOut, NotificationOut, PlanNoticeOut
+from mysite.services.user_notifications import unread_count
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
+
+
+@router.get("/inbox")
+async def get_inbox(skip: int = Query(0, ge=0), limit: int = Query(50, ge=1, le=200),
+                    user: User = Depends(get_current_user), db: AsyncSession = Depends(get_session)):
+    items = await db.scalars(select(UserNotification).where(UserNotification.user_id == user.id)
+                              .order_by(UserNotification.id.desc()).offset(skip).limit(limit))
+    return {"unread_count": await unread_count(db, user.id), "items": items.all()}
+
+
+@router.get("/unread-count")
+async def get_unread_count(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_session)):
+    return {"count": await unread_count(db, user.id)}
+
+
+@router.post("/inbox/{notification_id}/read")
+async def mark_read(notification_id: int, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_session)):
+    item = await db.get(UserNotification, notification_id)
+    if item is None or item.user_id != user.id:
+        raise HTTPException(404, "Notification not found")
+    item.read_at = item.read_at or datetime.now(timezone.utc)
+    await db.commit()
+    return {"ok": True}
 
 
 async def get_or_404(db: AsyncSession, notification_id: int, user: User) -> Notification:
