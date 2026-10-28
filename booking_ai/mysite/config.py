@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     google_client_secret: str | None = None
     google_redirect_uri: str | None = None
     google_frontend_redirect_url: str | None = None
-    cors_allow_origins: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173"
+    cors_allow_origins: str = "http://localhost:3000,http://localhost:5173,https://kochmon.com.kg"
 
     blocked_words_path: Path = BASE_DIR / "data" / "blocked_words.txt"
 
