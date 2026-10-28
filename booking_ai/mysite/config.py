@@ -1,6 +1,7 @@
 """Настройки приложения из переменных окружения / .env (секреты только там)."""
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from pathlib import Path
 from pydantic import AliasChoices, Field, model_validator
@@ -37,7 +38,10 @@ class Settings(BaseSettings):
     admin_email: str | None = None
     admin_password: str | None = None
 
-    ollama_base_url: str = Field("http://127.0.0.1:11434", validation_alias=AliasChoices("OLLAMA_BASE_URL", "OLLAMA_URL"))
+    ollama_base_url: str = Field(
+        default_factory=lambda: "http://host.docker.internal:11434" if os.path.exists("/.dockerenv") else "http://127.0.0.1:11434",
+        validation_alias=AliasChoices("OLLAMA_BASE_URL", "OLLAMA_URL"),
+    )
     ollama_model: str = "llama3.2:latest"
     ollama_timeout_seconds: float = 120.0
     ai_pending_ttl_seconds: int = 300      # сколько ждём ответ «да/нет» на подтверждение удаления
@@ -75,6 +79,15 @@ class Settings(BaseSettings):
     def _build_database_url(self):
         if not self.database_url:
             self.database_url = "sqlite+aiosqlite:///./booking_ai.db"
+        return self
+
+    @model_validator(mode="after")
+    def _normalize_ollama_base_url(self):
+        if not os.path.exists("/.dockerenv"):
+            return self
+        url = (self.ollama_base_url or "").strip().rstrip("/")
+        if url in {"http://127.0.0.1:11434", "http://localhost:11434"}:
+            self.ollama_base_url = "http://host.docker.internal:11434"
         return self
 
 

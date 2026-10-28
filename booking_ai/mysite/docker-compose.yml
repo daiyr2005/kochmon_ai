@@ -39,7 +39,6 @@ services:
       - "443:443"
     volumes:
       - lets:/config
-      - ./nginx/ssl.conf:/config/nginx/site-confs/ssl/ssl.conf
       - ./nginx/nginx.conf:/config/nginx/site-confs/default.conf
       - ./staticfiles:/app/staticfiles
       - ./media:/app/media

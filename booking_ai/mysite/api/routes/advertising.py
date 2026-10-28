@@ -195,6 +195,12 @@ async def reject_campaign(campaign_id: int, data: ModerationDecision, _: User = 
     return campaign
 
 
+@router.get("/placements/home", response_model=list[SponsoredCampaignOut])
+async def get_home_placement(limit: int = Query(default=5, ge=1, le=20),
+                            db: AsyncSession = Depends(get_session)):
+    return await get_placement("home", limit=limit, db=db)
+
+
 @router.get("/placements/{placement}", response_model=list[SponsoredCampaignOut])
 async def get_placement(placement: Placement, limit: int = Query(default=5, ge=1, le=20),
                         db: AsyncSession = Depends(get_session)):

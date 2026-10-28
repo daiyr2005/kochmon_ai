@@ -16,7 +16,7 @@ from mysite.services.errors import ServiceError
 from mysite.services.listing_service import create_listing, publish_listing
 from mysite.services.user_notifications import notify_user
 from mysite.api.routes.payments import confirm_promotion_payment
-from mysite.config import get_settings
+from mysite.config import Settings, get_settings
 from mysite.services.listing_service import ensure_can_modify
 from mysite.integrations.payment_providers import GenericProvider
 from mysite.api.router import api_router
@@ -138,6 +138,12 @@ def test_dev_provider_is_rejected_in_production(monkeypatch):
     with pytest.raises(RuntimeError, match="PAYMENT_PROVIDER=dev"):
         get_settings()
     get_settings.cache_clear()
+
+
+def test_ollama_default_uses_docker_host_when_running_in_container(monkeypatch):
+    monkeypatch.setattr("os.path.exists", lambda path: path == "/.dockerenv")
+    settings = Settings()
+    assert settings.ollama_base_url == "http://host.docker.internal:11434"
 
 
 def test_signed_webhook_requires_valid_signature_and_event_id():
