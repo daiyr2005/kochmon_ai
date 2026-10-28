@@ -27,10 +27,10 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Asia/Bishkek
-      - URL=${DOMAIN:-kochmon.com.kg}
-      - SUBDOMAINS=api
+      - URL=kochmon.com.kg
+      - SUBDOMAINS=
       - VALIDATION=http
-      - ONLY_SUBDOMAINS=true
+      - ONLY_SUBDOMAINS=false
       - STAGING=false
     depends_on:
       - web

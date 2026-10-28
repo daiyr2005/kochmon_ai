@@ -3,7 +3,7 @@
   "workspaceId": "5653e8673bd5a22e",
   "workspaceName": "booking_ai_events_renewal_tavily",
   "enabled": true,
-  "updatedAt": "2026-10-28T12:48:46.736Z",
+  "updatedAt": "2026-10-28T14:00:37.936Z",
   "detectedStack": {
     "languages": [],
     "frameworks": [],
@@ -44,7 +44,7 @@
         "evidence": {
           "file": "booking_ai/.env"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.728Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.934Z"
       },
       {
         "id": "ff2678c23c58289f",
@@ -56,7 +56,7 @@
         "evidence": {
           "file": "booking_ai/mysite/admin/setup.py"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.730Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.936Z"
       },
       {
         "id": "dd96a61e718cfd8c",
@@ -68,7 +68,7 @@
         "evidence": {
           "file": "booking_ai/mysite/admin/views.py"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.731Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.936Z"
       },
       {
         "id": "0e182996ca2ff6c1",
@@ -80,7 +80,7 @@
         "evidence": {
           "file": "booking_ai/mysite/admin/__init__.py"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.731Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.936Z"
       },
       {
         "id": "946169dea33c553a",
@@ -92,7 +92,7 @@
         "evidence": {
           "file": "booking_ai/mysite/api/routes/auth.py"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.731Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.936Z"
       },
       {
         "id": "f2ce5178ca9d8aa7",
@@ -104,7 +104,7 @@
         "evidence": {
           "file": "booking_ai/mysite/api/routes/payments.py"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.731Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.936Z"
       },
       {
         "id": "ac46234e15a1faaf",
@@ -116,7 +116,7 @@
         "evidence": {
           "file": "booking_ai/mysite/database/session.py"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.731Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.936Z"
       },
       {
         "id": "81665240db4b3a29",
@@ -128,7 +128,7 @@
         "evidence": {
           "file": "booking_ai/mysite/schemas/auth.py"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.731Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.936Z"
       },
       {
         "id": "4a4369c67401facf",
@@ -140,7 +140,7 @@
         "evidence": {
           "file": "booking_ai/mysite/schemas/billing.py"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.731Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.936Z"
       },
       {
         "id": "42e6526d304becfd",
@@ -152,7 +152,7 @@
         "evidence": {
           "file": "booking_ai/mysite/services/billing.py"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.731Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.936Z"
       },
       {
         "id": "98a26d99de9f3a6a",
@@ -175,7 +175,7 @@
         "source": "repo_detected",
         "confidence": "confirmed",
         "scope": "workspace",
-        "lastVerifiedAt": "2026-10-28T12:48:46.731Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.936Z"
       }
     ],
     "allowedCommands": [],
@@ -191,7 +191,7 @@
         "evidence": {
           "file": "booking_ai/mysite/nginx/Dockerfile"
         },
-        "lastVerifiedAt": "2026-10-28T12:48:46.728Z"
+        "lastVerifiedAt": "2026-10-28T14:00:37.934Z"
       }
     ],
     "testingExpectations": [],
