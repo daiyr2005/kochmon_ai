@@ -2,14 +2,14 @@
 
 ## Production connection
 
-- API base URL: `https://api.kochmon.com.kg`
-- OpenAPI / Swagger UI: `https://api.kochmon.com.kg/docs`
-- OpenAPI JSON: `https://api.kochmon.com.kg/openapi.json`
+- API base URL: `https://kochmon.com.kg`
+- OpenAPI / Swagger UI: `https://kochmon.com.kg/docs`
+- OpenAPI JSON: `https://kochmon.com.kg/openapi.json`
 - All application routes below are under `/api`.
 - Use HTTPS. Do not append `/api` to `API_URL` if endpoint paths already start with `/api`.
 
 ```js
-const API_URL = "https://api.kochmon.com.kg";
+const API_URL = "https://kochmon.com.kg";
 ```
 
 ## Authentication and request format
@@ -215,4 +215,4 @@ Validation errors use HTTP `422`; authentication failures use `401`, access rest
 
 The adjacent [openapi.json](openapi.json) contains all public frontend routes, request and response schemas, parameters, auth requirements, and the production server URL. Webhooks excluded from interactive OpenAPI are server-to-server integrations and should not be called by the browser.
 
-For browser access, the deployed `CORS_ALLOW_ORIGINS` setting must include the frontend's exact origin (scheme and host, and port when non-default). The backend API origin is `https://api.kochmon.com.kg`; the frontend origin is a separate domain and should be supplied by the frontend deployment configuration.
+For browser access, the deployed `CORS_ALLOW_ORIGINS` setting must include the frontend's exact origin (scheme and host, and port when non-default). The backend API origin is `https://kochmon.com.kg`; the frontend origin is a separate domain and should be supplied by the frontend deployment configuration.

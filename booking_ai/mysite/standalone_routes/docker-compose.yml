@@ -1,0 +1,18 @@
+services:
+  routes-api:
+    build:
+      context: ../..
+      dockerfile: mysite/standalone_routes/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../../.env
+    environment:
+      DATABASE_URL: sqlite+aiosqlite:////data/booking_ai_standalone.db
+      SQLITE_DATA_DIR: /data
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${ROUTES_API_PORT:-8001}:8000"
+    volumes:
+      - ./data:/data
